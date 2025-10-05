@@ -171,17 +171,63 @@
    * Init swiper sliders
    */
   function initSwiper() {
-    document.querySelectorAll(".init-swiper").forEach(function(swiperElement) {
-      let config = JSON.parse(
-        swiperElement.querySelector(".swiper-config").innerHTML.trim()
-      );
 
-      if (swiperElement.classList.contains("swiper-tab")) {
-        initSwiperWithCustomPagination(swiperElement, config);
-      } else {
-        new Swiper(swiperElement, config);
-      }
-    });
+      // Initialize each portfolio project slider individually
+      document.querySelectorAll('.portfolio-details').forEach(function(projectElement) {
+          try {
+              const mainSliderEl = projectElement.querySelector('.portfolio-details-slider');
+              const thumbsSliderEl = projectElement.querySelector('.thumbs-slider');
+
+              if (!mainSliderEl) return;
+
+              // 1. Initialize the thumbnail slider
+              let thumbsSwiper = null;
+              if (thumbsSliderEl) {
+                  thumbsSwiper = new Swiper(thumbsSliderEl, {
+                      spaceBetween: 10,
+                      slidesPerView: 'auto',
+                      freeMode: true,
+                      watchSlidesProgress: true,
+                      scrollbar: {
+                          el: thumbsSliderEl.querySelector('.swiper-scrollbar'),
+                          draggable: true,
+                      },
+                      // NOTE: The 'navigation' property has been REMOVED from here.
+                  });
+              }
+
+              // 2. Get the main slider's configuration from the HTML
+              let mainConfig = JSON.parse(
+                  mainSliderEl.querySelector(".swiper-config").innerHTML.trim()
+              );
+
+              // 3. Link the thumbnail slider to the main slider
+              if (thumbsSwiper) {
+                  mainConfig.thumbs = {
+                      swiper: thumbsSwiper
+                  };
+              }
+
+              // 4. Ensure pagination is unique
+              if (mainConfig.pagination) {
+                  mainConfig.pagination.el = mainSliderEl.querySelector(".swiper-pagination");
+              }
+
+              // 5. CRITICAL CHANGE: Add navigation control to the MAIN slider
+              // This tells the main slider to listen to the arrows in the thumbs container.
+              mainConfig.navigation = {
+                  nextEl: projectElement.querySelector('.thumbs-container .swiper-button-next'),
+                  prevEl: projectElement.querySelector('.thumbs-container .swiper-button-prev'),
+              };
+
+              // 6. Initialize the main slider with the complete configuration
+              new Swiper(mainSliderEl, mainConfig);
+
+          } catch (e) {
+              console.error("Error initializing Swiper on element:", projectElement);
+              console.error("There is likely an error in the JSON configuration provided in the HTML.", e);
+          }
+      });
   }
 
   window.addEventListener("load", initSwiper);
