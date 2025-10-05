@@ -167,70 +167,132 @@
 
   });
 
-  /**
-   * Init swiper sliders
-   */
-  function initSwiper() {
+    /**
+     * Builds and initializes all dynamic portfolio sliders.
+     */
+    function buildAndInitPortfolios() {
 
-      // Initialize each portfolio project slider individually
-      document.querySelectorAll('.portfolio-details').forEach(function(projectElement) {
-          try {
-              const mainSliderEl = projectElement.querySelector('.portfolio-details-slider');
-              const thumbsSliderEl = projectElement.querySelector('.thumbs-slider');
+        // Helper function to extract YouTube video ID from various URL formats
+        function getYoutubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
 
-              if (!mainSliderEl) return;
+        document.querySelectorAll('.portfolio-project-dynamic').forEach((projectElement, projectIndex) => {
+            const mediaDataScript = projectElement.querySelector('.project-media-data');
+            const slideshowContainer = projectElement.querySelector('.slideshow-container');
 
-              // 1. Initialize the thumbnail slider
-              let thumbsSwiper = null;
-              if (thumbsSliderEl) {
-                  thumbsSwiper = new Swiper(thumbsSliderEl, {
-                      spaceBetween: 10,
-                      slidesPerView: 'auto',
-                      freeMode: true,
-                      watchSlidesProgress: true,
-                      scrollbar: {
-                          el: thumbsSliderEl.querySelector('.swiper-scrollbar'),
-                          draggable: true,
-                      },
-                      // NOTE: The 'navigation' property has been REMOVED from here.
-                  });
-              }
+            if (!mediaDataScript || !slideshowContainer) {
+                console.error('Skipping a dynamic project block because it is missing data or a slideshow container.', projectElement);
+                return;
+            }
 
-              // 2. Get the main slider's configuration from the HTML
-              let mainConfig = JSON.parse(
-                  mainSliderEl.querySelector(".swiper-config").innerHTML.trim()
-              );
+            try {
+                const mediaItems = JSON.parse(mediaDataScript.innerHTML.trim());
+                const galleryId = `project-gallery-${projectIndex + 1}`;
 
-              // 3. Link the thumbnail slider to the main slider
-              if (thumbsSwiper) {
-                  mainConfig.thumbs = {
-                      swiper: thumbsSwiper
-                  };
-              }
+                let mainSlidesHTML = '';
+                let thumbSlidesHTML = '';
 
-              // 4. Ensure pagination is unique
-              if (mainConfig.pagination) {
-                  mainConfig.pagination.el = mainSliderEl.querySelector(".swiper-pagination");
-              }
+                mediaItems.forEach(item => {
+                    if (item.type === 'image') {
+                        mainSlidesHTML += `
+            <div class="swiper-slide">
+              <a href="${item.url}" class="glightbox" data-gallery="${galleryId}">
+                <img src="${item.url}" alt="Project media">
+              </a>
+            </div>`;
+                        thumbSlidesHTML += `
+            <div class="swiper-slide">
+              <img src="${item.url}" alt="Project thumbnail">
+            </div>`;
+                    } else if (item.type === 'video') {
+                        const videoId = getYoutubeID(item.url);
+                        if (videoId) {
+                            mainSlidesHTML += `
+              <div class="swiper-slide">
+                <div class="ratio ratio-16x9">
+                  <iframe src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+              </div>`;
+                            thumbSlidesHTML += `
+              <div class="swiper-slide thumb-video">
+                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video thumbnail">
+                <i class="bi bi-play-fill"></i>
+              </div>`;
+                        }
+                    }
+                });
 
-              // 5. CRITICAL CHANGE: Add navigation control to the MAIN slider
-              // This tells the main slider to listen to the arrows in the thumbs container.
-              mainConfig.navigation = {
-                  nextEl: projectElement.querySelector('.thumbs-container .swiper-button-next'),
-                  prevEl: projectElement.querySelector('.thumbs-container .swiper-button-prev'),
-              };
+                // Assemble the complete HTML for the slideshow and its thumbs
+                const fullSlideshowHTML = `
+        <div class="portfolio-details-slider swiper">
+          <div class="swiper-wrapper align-items-center">${mainSlidesHTML}</div>
+        </div>
+        <div class="thumbs-container">
+          <div class="swiper-button-prev"></div>
+          <div class="swiper thumbs-slider">
+            <div class="swiper-wrapper">${thumbSlidesHTML}</div>
+            <div class="swiper-scrollbar"></div>
+          </div>
+          <div class="swiper-button-next"></div>
+        </div>`;
 
-              // 6. Initialize the main slider with the complete configuration
-              new Swiper(mainSliderEl, mainConfig);
+                // Inject the generated HTML into the placeholder
+                slideshowContainer.innerHTML = fullSlideshowHTML;
 
-          } catch (e) {
-              console.error("Error initializing Swiper on element:", projectElement);
-              console.error("There is likely an error in the JSON configuration provided in the HTML.", e);
-          }
-      });
-  }
+            } catch (e) {
+                console.error('Failed to parse JSON or build slideshow for project:', projectElement, e);
+            }
+        });
 
-  window.addEventListener("load", initSwiper);
+        // Now that all slideshows are built, initialize them
+        initAllSwipers();
+    }
+
+    /**
+     * Initializes all Swiper instances on the page (portfolio and others).
+     * This function is now called AFTER the dynamic HTML has been built.
+     */
+    function initAllSwipers() {
+        // Portfolio sliders with thumbs
+        document.querySelectorAll('.slideshow-container').forEach(function(container) {
+            const mainSliderEl = container.querySelector('.portfolio-details-slider');
+            const thumbsSliderEl = container.querySelector('.thumbs-slider');
+            if (!mainSliderEl || !thumbsSliderEl) return;
+
+            const thumbsSwiper = new Swiper(thumbsSliderEl, {
+                spaceBetween: 10,
+                slidesPerView: 'auto',
+                freeMode: true,
+                watchSlidesProgress: true,
+                scrollbar: {
+                    el: thumbsSliderEl.querySelector('.swiper-scrollbar'),
+                    draggable: true,
+                },
+            });
+
+            new Swiper(mainSliderEl, {
+                loop: false,
+                speed: 600,
+                autoplay: false,
+                navigation: {
+                    nextEl: container.querySelector('.thumbs-container .swiper-button-next'),
+                    prevEl: container.querySelector('.thumbs-container .swiper-button-prev'),
+                },
+                thumbs: {
+                    swiper: thumbsSwiper,
+                },
+            });
+        });
+
+        // Initialize any other simple swipers on the page here (e.g., testimonials)
+        // Example: new Swiper('.testimonials-slider', { ... });
+    }
+
+// Run the main build function when the page content is loaded
+    window.addEventListener('DOMContentLoaded', buildAndInitPortfolios);
 
   /**
    * Correct scrolling position upon page load for URLs containing hash links.
