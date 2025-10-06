@@ -280,6 +280,7 @@
 
             new Swiper(mainSliderEl, {
                 loop: false,
+                effect: 'coverflow',
                 speed: 600,
                 autoplay: false,
                 navigation: {
