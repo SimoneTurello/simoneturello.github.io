@@ -242,6 +242,14 @@
                 // Inject the generated HTML into the placeholder
                 slideshowContainer.innerHTML = fullSlideshowHTML;
 
+                // HIDE THUMBNAILS IF THERE IS ONLY ONE ITEM
+                if (mediaItems.length <= 1) {
+                    const thumbsContainer = slideshowContainer.querySelector('.thumbs-container');
+                    if (thumbsContainer) {
+                        thumbsContainer.style.display = 'none';
+                    }
+                }
+
             } catch (e) {
                 console.error('Failed to parse JSON or build slideshow for project:', projectElement, e);
             }
