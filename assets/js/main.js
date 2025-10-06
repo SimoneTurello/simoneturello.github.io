@@ -128,13 +128,6 @@
   });
 
   /**
-   * Initiate glightbox
-   */
-  const glightbox = GLightbox({
-    selector: '.glightbox'
-  });
-
-  /**
    * Init isotope layout and filters
    */
   document.querySelectorAll('.isotope-layout').forEach(function(isotopeItem) {
@@ -257,6 +250,10 @@
 
         // Now that all slideshows are built, initialize them
         initAllSwipers();
+
+        GLightbox({
+            selector: '.glightbox'
+        });
     }
 
     /**
