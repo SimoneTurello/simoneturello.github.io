@@ -178,7 +178,7 @@
             const slideshowContainer = projectElement.querySelector('.slideshow-container');
 
             if (!mediaDataScript || !slideshowContainer) {
-                console.error('Skipping a dynamic project block because it is missing data or a slideshow container.', projectElement);
+                console.log('Skipping a dynamic project block because it is missing data or a slideshow container.', projectElement);
                 return;
             }
 
