@@ -1551,3 +1551,44 @@ section,
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
+
+/*--------------------------------------------------------------
+# Video Facade for Performance Optimization
+--------------------------------------------------------------*/
+.portfolio-details-slider .video-facade {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 4px; /* Optional: adds a slight curve to the corners */
+}
+
+.portfolio-details-slider .video-facade img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.portfolio-details-slider .video-facade:hover img {
+    transform: scale(1.05);
+}
+
+.portfolio-details-slider .video-facade i {
+    /* Positioning */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    /* Appearance */
+    font-size: 128px; /* Larger, more inviting play icon */
+    color: var(--contrast-color);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); /* Improves visibility on bright thumbnails */
+    transition: all 0.3s ease;
+    pointer-events: none; /* Ensures clicks go to the parent div */
+}
+
+.portfolio-details-slider .video-facade:hover i {
+    transform: translate(-50%, -50%) scale(1.1);
+    color: #ffffff;
+}

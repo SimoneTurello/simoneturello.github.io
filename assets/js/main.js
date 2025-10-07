@@ -162,6 +162,7 @@
 
     /**
      * Builds and initializes all dynamic portfolio sliders.
+     * Implements a lazy-loading facade for YouTube videos to improve performance.
      */
     function buildAndInitPortfolios() {
 
@@ -203,10 +204,12 @@
                     } else if (item.type === 'video') {
                         const videoId = getYoutubeID(item.url);
                         if (videoId) {
+                            // OPTIMIZATION: Use a lightweight facade instead of a heavy iframe on load
                             mainSlidesHTML += `
               <div class="swiper-slide">
-                <div class="ratio ratio-16x9">
-                  <iframe src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <div class="video-facade" data-youtube-id="${videoId}">
+                  <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video thumbnail for ${item.url}">
+                  <i class="bi bi-play-fill"></i>
                 </div>
               </div>`;
                             thumbSlidesHTML += `
@@ -218,16 +221,16 @@
                     } else if (item.type === 'gdrive-video') {
                         if (item.url && item.thumbUrl) {
                             mainSlidesHTML += `
-        <div class="swiper-slide">
-          <div class="ratio ratio-16x9">
-            <iframe src="${item.url}" title="Google Drive video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-          </div>
-        </div>`;
+              <div class="swiper-slide">
+                <div class="ratio ratio-16x9">
+                  <iframe src="${item.url}" title="Google Drive video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+              </div>`;
                             thumbSlidesHTML += `
-        <div class="swiper-slide thumb-video">
-          <img src="${item.thumbUrl}" alt="Google Drive video thumbnail">
-          <i class="bi bi-play-circle-fill"></i>
-        </div>`;
+              <div class="swiper-slide thumb-video">
+                <img src="${item.thumbUrl}" alt="Google Drive video thumbnail">
+                <i class="bi bi-play-circle-fill"></i>
+              </div>`;
                         }
 
                     }
@@ -354,5 +357,35 @@
   }
   window.addEventListener('load', navmenuScrollspy);
   document.addEventListener('scroll', navmenuScrollspy);
+
+    /**
+     * YouTube Video Facade - Lazy-loads the YouTube player on click.
+     */
+    document.addEventListener('click', function(e) {
+        // Use event delegation for performance
+        const facade = e.target.closest('.video-facade');
+        if (!facade) return;
+
+        e.preventDefault();
+        const videoId = facade.dataset.youtubeId;
+        if (!videoId) return;
+
+        // 1. Create the iframe
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1&iv_load_policy=3`;
+        iframe.title = "YouTube video player";
+        iframe.frameBorder = "0";
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+        iframe.allowFullscreen = true;
+
+        // 2. Create a Bootstrap ratio container for the iframe
+        // This is the key fix: this container is guaranteed to maintain its aspect ratio.
+        const videoContainer = document.createElement('div');
+        videoContainer.className = 'ratio ratio-16x9';
+        videoContainer.appendChild(iframe);
+
+        // 3. Replace the entire facade element with the new video container
+        facade.parentNode.replaceChild(videoContainer, facade);
+    }, false);
 
 })();
