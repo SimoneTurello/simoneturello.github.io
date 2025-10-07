@@ -208,16 +208,17 @@
                             mainSlidesHTML += `
               <div class="swiper-slide">
                 <div class="video-facade" data-youtube-id="${videoId}">
-                  <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video thumbnail for ${item.url}">
+                  <img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg';" alt="Video thumbnail for ${item.url}">
                   <i class="bi bi-play-fill"></i>
                 </div>
               </div>`;
                             thumbSlidesHTML += `
               <div class="swiper-slide thumb-video">
-                <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video thumbnail">
+                <img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg';" alt="Video thumbnail">
                 <i class="bi bi-play-fill"></i>
               </div>`;
                         }
+
                     } else if (item.type === 'gdrive-video') {
                         if (item.url && item.thumbUrl) {
                             mainSlidesHTML += `
